@@ -1,4 +1,6 @@
 package client;
+import fenetre.*;
+import javax.swing.*;
 
 import java.io.BufferedReader;
 import java.io.IOException;
@@ -6,31 +8,41 @@ import java.io.InputStreamReader;
 import java.net.Socket;
 import java.net.SocketException;
 
+
+/**
+ * Thread for clients
+ */
 public class ThreadClient implements Runnable {
-    Client c;
-    Socket socket;
 
-    public Socket get_socket(){return this.socket;}
+    private Socket socket;
+    private BufferedReader cin;
+    private Index interf;
 
-    public void set_socket(Socket s){this.socket = s;}
-
-    public ThreadClient(Socket socket,Client cl) throws IOException {
-        set_socket(socket);
-        this.c = cl;
+    public ThreadClient(Socket socket,Index inte) throws IOException {
+        this.socket = socket;
+        this.interf=inte;
+        this.cin = new BufferedReader(new InputStreamReader(socket.getInputStream()));
     }
 
     @Override
     public void run() {
         try {
             while (true) {
-                c.set_reponse(c.get_reponse());
-                System.out.println("continue");
+                String message = cin.readLine();
+                System.out.println(message);
+                this.interf.get_list_label().add(new JLabel(message));
             }
         } catch (SocketException e) {
-            System.out.println("Exiting the chat-room ... ");
+            System.out.println("exiting...");
             System.out.println("You left the chat-room");
         } catch (IOException exception) {
             System.out.println(exception);
+        } finally {
+            try {
+                cin.close();
+            } catch (Exception exception) {
+                System.out.println(exception);
+            }
         }
     }
 }
